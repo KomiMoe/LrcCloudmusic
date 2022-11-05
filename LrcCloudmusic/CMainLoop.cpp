@@ -27,9 +27,14 @@ void CMainLoop::Tick()
         {
             return;
         }
-        ShowNewLine(pCurrentLrc);
         const float progress = *reinterpret_cast<float*>(pLrcData + 0x4);
+        if (progress < _lastProgress || progress == 0.f)
+        {
+            UpdateProgress(1.f);
+            ShowNewLine(pCurrentLrc);
+        }
         UpdateProgress(progress);
+        _lastProgress = progress;
     }
     __except (1)
     {
@@ -192,6 +197,6 @@ void CMainLoop::Run()
             break;
         }
         Tick();
-        Sleep(50);
+        Sleep(20);
     }
 }

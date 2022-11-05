@@ -10,6 +10,7 @@ protected:
     PUCHAR _pLrcContext = nullptr;
 
     std::wstring _lastLrc;
+    float _lastProgress;
     size_t _processedPos;
 
     std::mutex* _mutex;
