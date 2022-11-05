@@ -17,8 +17,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             new std::thread([]
             {
 #ifdef _DEBUG
-                    setlocale(LC_CTYPE, "");
                     AllocConsole();
+                    setlocale(LC_ALL, "");
                     FILE* fBackup;
                     freopen_s(&fBackup, "CONOUT$", "w", stdout);
 #endif
