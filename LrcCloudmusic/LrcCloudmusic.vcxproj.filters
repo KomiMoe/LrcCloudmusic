@@ -7,8 +7,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="CMainLoop.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CMainLoop.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>source</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
