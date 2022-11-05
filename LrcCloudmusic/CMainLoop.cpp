@@ -72,7 +72,7 @@ void CMainLoop::UpdateProgress(float progress)
         return;
     }
     const auto lineLength = _lastLrc.length();
-    const auto printPos = static_cast<size_t>(static_cast<float>(lineLength) * progress);
+    const auto printPos = static_cast<size_t>(ceil(static_cast<float>(lineLength) * progress));
     if (printPos <= _processedPos)
     {
         return;
