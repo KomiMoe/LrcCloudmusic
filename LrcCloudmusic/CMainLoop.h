@@ -17,6 +17,7 @@ protected:
     void Tick();
     void RefreshContext();
     void ShowNewLine(PWCHAR pCurrentLrc);
+    void UpdateProgress(float progress);
 
 public:
     CMainLoop();

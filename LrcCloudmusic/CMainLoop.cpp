@@ -28,6 +28,8 @@ void CMainLoop::Tick()
             return;
         }
         ShowNewLine(pCurrentLrc);
+        const float progress = *reinterpret_cast<float*>(pLrcData + 0x4);
+        UpdateProgress(progress);
     }
     __except (1)
     {
@@ -54,6 +56,11 @@ void CMainLoop::ShowNewLine(PWCHAR pCurrentLrc)
     #ifdef _DEBUG
     wprintf(L"%ws\n", currentLrc.c_str());
     #endif
+}
+
+void CMainLoop::UpdateProgress(float progress)
+{
+
 }
 
 CMainLoop::CMainLoop()
