@@ -52,15 +52,31 @@ void CMainLoop::ShowNewLine(PWCHAR pCurrentLrc)
     {
         return;
     }
+    _processedPos = 0;
     _lastLrc = std::move(currentLrc);
     #ifdef _DEBUG
-    wprintf(L"%ws\n", currentLrc.c_str());
+    wprintf(L"\n");
+    //wprintf(L"%ws\n", currentLrc.c_str());
     #endif
 }
 
 void CMainLoop::UpdateProgress(float progress)
 {
-
+    if (progress > 1.f)
+    {
+        return;
+    }
+    const auto lineLength = _lastLrc.length();
+    const auto printPos = static_cast<size_t>(ceil(static_cast<float>(lineLength) * progress));
+    if (printPos <= _processedPos)
+    {
+        return;
+    }
+#ifdef _DEBUG
+    const auto printWorlds = _lastLrc.substr(_processedPos, printPos - _processedPos);
+    wprintf(L"%ws", printWorlds.c_str());
+#endif
+    _processedPos = printPos;
 }
 
 CMainLoop::CMainLoop()

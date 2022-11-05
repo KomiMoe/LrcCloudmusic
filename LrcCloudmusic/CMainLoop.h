@@ -10,6 +10,7 @@ protected:
     PUCHAR _pLrcContext = nullptr;
 
     std::wstring _lastLrc;
+    size_t _processedPos;
 
     std::mutex* _mutex;
     bool _initialized = false;
