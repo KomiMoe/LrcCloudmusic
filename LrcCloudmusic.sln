@@ -5,6 +5,8 @@ VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LrcCloudmusic", "LrcCloudmusic\LrcCloudmusic.vcxproj", "{D8B054FD-5C4A-43A2-B42C-18F2200DC18E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LrcCloudmusicLauncher", "LrcCloudmusicLauncher\LrcCloudmusicLauncher.vcxproj", "{9BF8E1B9-42F7-45B8-B3D4-F953178D5FF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,6 +17,10 @@ Global
 		{D8B054FD-5C4A-43A2-B42C-18F2200DC18E}.Debug|x86.Build.0 = Debug|Win32
 		{D8B054FD-5C4A-43A2-B42C-18F2200DC18E}.Release|x86.ActiveCfg = Release|Win32
 		{D8B054FD-5C4A-43A2-B42C-18F2200DC18E}.Release|x86.Build.0 = Release|Win32
+		{9BF8E1B9-42F7-45B8-B3D4-F953178D5FF5}.Debug|x86.ActiveCfg = Release|Win32
+		{9BF8E1B9-42F7-45B8-B3D4-F953178D5FF5}.Debug|x86.Build.0 = Release|Win32
+		{9BF8E1B9-42F7-45B8-B3D4-F953178D5FF5}.Release|x86.ActiveCfg = Release|Win32
+		{9BF8E1B9-42F7-45B8-B3D4-F953178D5FF5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
