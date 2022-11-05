@@ -14,11 +14,12 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     switch (ul_reason_for_call)
     {
         case DLL_PROCESS_ATTACH:
+            DisableThreadLibraryCalls(hModule);
             new std::thread([]
             {
 #ifdef _DEBUG
-                    setlocale(LC_CTYPE, "");
                     AllocConsole();
+                    setlocale(LC_ALL, "");
                     FILE* fBackup;
                     freopen_s(&fBackup, "CONOUT$", "w", stdout);
 #endif
