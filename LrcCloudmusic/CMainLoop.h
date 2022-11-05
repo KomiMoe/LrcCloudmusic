@@ -20,5 +20,6 @@ protected:
 
 public:
     CMainLoop();
+    ~CMainLoop();
     void Run();
 };

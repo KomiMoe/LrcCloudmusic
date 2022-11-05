@@ -1,5 +1,6 @@
 #include "CMainLoop.h"
 
+#include <clocale>
 #include <thread>
 #include <Windows.h>
 
@@ -16,6 +17,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             new std::thread([]
             {
 #ifdef _DEBUG
+                    setlocale(LC_CTYPE, "");
                     AllocConsole();
                     FILE* fBackup;
                     freopen_s(&fBackup, "CONOUT$", "w", stdout);
