@@ -26,7 +26,7 @@ int main()
                     {
                         BOOL LoadSuccess = FALSE;
 
-                        WriteProcessMemory(hCloudmusicProcess, LrcLoaderPtr, LrcCloudmusicDLL, MAX_PATH + 20, 0);
+                        WriteProcessMemory(hCloudmusicProcess, LrcLoaderPtr, LrcCloudmusicDLL, (MAX_PATH + 20) * 2, 0);
                         HANDLE hLrcLoaderThread = CreateRemoteThread(hCloudmusicProcess, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryW, LrcLoaderPtr, 0, 0);
 
                         if (hLrcLoaderThread)
