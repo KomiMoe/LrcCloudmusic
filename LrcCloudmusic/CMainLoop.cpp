@@ -1,7 +1,14 @@
 #include "CMainLoop.h"
 #include "Utils.h"
 
+#include "imgui/imgui_impl_win32.h"
+#include "imgui/imgui_impl_dx11.h"
+
 #include <iostream>
+#include <dwmapi.h>
+
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dwmapi.lib")
 
 void CMainLoop::Tick()
 {
@@ -33,11 +40,54 @@ void CMainLoop::Tick()
             UpdateProgress(1.f);
             ShowNewLine(pCurrentLrc);
         }
-        UpdateProgress(progress);
+        //UpdateProgress(progress);
+        UpdateProgress(1.f);
         _lastProgress = progress;
     }
     __except (1)
     {
+    }
+}
+
+void CMainLoop::Draw() const
+{
+    constexpr float fontSize = 20.f;
+    constexpr auto clearColor = ImVec4(0.f, 0.f, 0.f, 0.f);
+
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    char szLrc[256];
+    if (WideCharToMultiByte(CP_UTF8, NULL, _lastLrc.c_str(), -1, szLrc, sizeof(szLrc), nullptr, nullptr))
+    {
+        const auto lrcRect = _mainFont->CalcTextSizeA(fontSize, 420.f, 10000.f, szLrc);
+
+        ImGui::GetForegroundDrawList()->AddText(_mainFont, fontSize, ImVec2(6.f, (_lastRectMSTaskSwWClass.bottom - _lastRectMSTaskSwWClass.top) * 0.5f - lrcRect.y * 0.5f), IM_COL32_WHITE, szLrc);
+    }
+
+    ImGui::Render();
+    constexpr float clearColorWithAlpha[4] = { clearColor.x * clearColor.w, clearColor.y * clearColor.w, clearColor.z * clearColor.w, clearColor.w };
+    _pd3dDeviceContext->OMSetRenderTargets(1, &_mainRenderTargetView, nullptr);
+    _pd3dDeviceContext->ClearRenderTargetView(_mainRenderTargetView, clearColorWithAlpha);
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+    _pSwapChain->Present(1, 0); // Present with v sync
+}
+
+void CMainLoop::UpdateWindow()
+{
+    GetWindowRect(_hMSTaskSwWClass, &_rectMSTaskSwWClass);
+    if (memcmp(&_lastRectMSTaskSwWClass, &_rectMSTaskSwWClass, sizeof(_rectMSTaskSwWClass)))
+    {
+        SetWindowPos(_lrcWindow, HWND_TOP, _rectMSTaskSwWClass.right, 0, 420, _rectMSTaskSwWClass.bottom - _rectMSTaskSwWClass.top, NULL);
+        _lastRectMSTaskSwWClass = _rectMSTaskSwWClass;
+    }
+    MSG msg;
+    while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 }
 
@@ -176,6 +226,84 @@ CMainLoop::CMainLoop()
     }
     _mutex = new std::mutex;
     _initialized = true;
+
+    _hShellTray = FindWindow(L"Shell_TrayWnd", nullptr);
+    if (!_hShellTray)
+    {
+        MessageBoxW(nullptr, L"Can not found task bar window", nullptr, NULL);
+        return;
+    }
+    _hReBarWindow32 = FindWindowEx(_hShellTray, nullptr, L"ReBarWindow32", nullptr);
+    if (!_hReBarWindow32)
+    {
+        MessageBoxW(nullptr, L"Can not found task bar window", nullptr, NULL);
+        return;
+    }
+    _hMSTaskSwWClass = FindWindowEx(_hReBarWindow32, nullptr, L"MSTaskSwWClass", nullptr);
+    if (!_hMSTaskSwWClass)
+    {
+        MessageBoxW(nullptr, L"Can not found task bar window", nullptr, NULL);
+        return;
+    }
+
+    GetWindowRect(_hMSTaskSwWClass, &_rectMSTaskSwWClass);
+    std::cout << "MSTaskSwWindow rect " << _rectMSTaskSwWClass.left << " " << _rectMSTaskSwWClass.top << " " << _rectMSTaskSwWClass.right << " " << _rectMSTaskSwWClass.bottom << std::endl;
+
+    const WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, DefWindowProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"Cloud Music Lrc Clz", nullptr};
+    RegisterClassEx(&wc);
+    _lrcWindow = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT, wc.lpszClassName, L"Cloud Music Lrc", WS_POPUP, 
+                                 _rectMSTaskSwWClass.right, 0, 420, _rectMSTaskSwWClass.bottom - _rectMSTaskSwWClass.top, nullptr, nullptr, wc.hInstance, nullptr);
+    
+    CreateDeviceD3D();
+    ShowWindow(_lrcWindow, SW_SHOW);
+    SetParent(_lrcWindow, _hShellTray);
+    SetLayeredWindowAttributes(_lrcWindow, RGB(0, 0, 0), 0, LWA_COLORKEY);
+    constexpr MARGINS margins{-1};
+    DwmExtendFrameIntoClientArea(_lrcWindow, &margins);
+    ShowWindow(_lrcWindow, SW_SHOW);
+    ::UpdateWindow(_lrcWindow);
+
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    _mainFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyhbd.ttc", 30.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    ImGui_ImplWin32_Init(_lrcWindow);
+    ImGui_ImplDX11_Init(_pd3dDevice, _pd3dDeviceContext);
+}
+
+bool CMainLoop::CreateDeviceD3D()
+{
+    DXGI_SWAP_CHAIN_DESC sd;
+    ZeroMemory(&sd, sizeof(sd));
+    sd.BufferCount = 2;
+    sd.BufferDesc.Width = 0;
+    sd.BufferDesc.Height = 0;
+    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    sd.BufferDesc.RefreshRate.Numerator = 60;
+    sd.BufferDesc.RefreshRate.Denominator = 1;
+    sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    sd.OutputWindow = _lrcWindow;
+    sd.SampleDesc.Count = 1;
+    sd.SampleDesc.Quality = 0;
+    sd.Windowed = TRUE;
+    sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+
+    constexpr UINT createDeviceFlags = 0;
+    D3D_FEATURE_LEVEL featureLevel;
+    constexpr D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
+    if (D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &_pSwapChain, &_pd3dDevice, &featureLevel, &_pd3dDeviceContext) != S_OK)
+        return false;
+
+    CreateRenderTarget();
+    return true;
+}
+
+void CMainLoop::CreateRenderTarget()
+{
+    ID3D11Texture2D* pBackBuffer;
+    _pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+    _pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &_mainRenderTargetView);
+    pBackBuffer->Release();
 }
 
 CMainLoop::~CMainLoop()
@@ -196,7 +324,8 @@ void CMainLoop::Run()
             _mutex->unlock();
             break;
         }
+        UpdateWindow();
         Tick();
-        Sleep(20);
+        Draw();
     }
 }
